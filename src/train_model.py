@@ -81,9 +81,7 @@ for col in df.columns[:-1]:
 # -----------------------
 X = df.drop("target", axis=1)
 y = df["target"]
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
-)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
 # -----------------------
 # Feature engineering
@@ -104,9 +102,7 @@ preprocessor = ColumnTransformer(
 mlflow.set_experiment("Heart_Disease_Prediction")
 
 models = {
-    "RandomForest": RandomForestClassifier(
-        n_estimators=200, max_depth=10, random_state=42
-    ),
+    "RandomForest": RandomForestClassifier(n_estimators=200, max_depth=10, random_state=42),
     "LogisticRegression": LogisticRegression(max_iter=1000),
 }
 
@@ -129,9 +125,7 @@ for name, clf in models.items():
     # Log to MLflow
     with mlflow.start_run(run_name=name):
         mlflow.log_params(clf.get_params())
-        mlflow.log_metrics(
-            {"Accuracy": acc, "Precision": prec, "Recall": rec, "ROC-AUC": roc}
-        )
+        mlflow.log_metrics({"Accuracy": acc, "Precision": prec, "Recall": rec, "ROC-AUC": roc})
         mlflow.sklearn.log_model(pipeline, f"{name}_model")
 
 # -----------------------
@@ -178,9 +172,7 @@ plt.close()
 # -----------------------
 # Choose best model by Accuracy
 best_model_name = max(results, key=lambda k: results[k]["Accuracy"])
-best_model_pipeline = Pipeline(
-    steps=[("preprocessor", preprocessor), ("classifier", models[best_model_name])]
-)
+best_model_pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("classifier", models[best_model_name])])
 best_model_pipeline.fit(X_train, y_train)
 
 pickle_path = f"outputs/final_model_{timestamp}.pkl"
@@ -194,9 +186,7 @@ with open(preproc_path, "wb") as f:
 # -----------------------
 # Save requirements
 # -----------------------
-requirements = (
-    "numpy\npandas\nscikit-learn\nmatplotlib\nseaborn\nmlflow\npytest\nflake8"
-)
+requirements = "numpy\npandas\nscikit-learn\nmatplotlib\nseaborn\nmlflow\npytest\nflake8"
 with open("outputs/requirements.txt", "w") as f:
     f.write(requirements)
 

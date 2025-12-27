@@ -24,18 +24,12 @@ templates = Jinja2Templates(directory="src/templates")
 # Setup output folder & logging
 # ----------------------------
 os.makedirs("src/outputs", exist_ok=True)
-logging.basicConfig(
-    filename="src/outputs/api_requests.log", level=logging.INFO, format="%(message)s"
-)
+logging.basicConfig(filename="src/outputs/api_requests.log", level=logging.INFO, format="%(message)s")
 
 # ----------------------------
 # Load latest trained model
 # ----------------------------
-model_files = [
-    f
-    for f in os.listdir("src/outputs")
-    if f.startswith("final_model_") and f.endswith(".pkl")
-]
+model_files = [f for f in os.listdir("src/outputs") if f.startswith("final_model_") and f.endswith(".pkl")]
 if not model_files:
     raise FileNotFoundError("No trained model found in src/outputs folder.")
 latest_model_file = sorted(model_files)[-1]
@@ -65,9 +59,7 @@ FEATURES = [
 # ----------------------------
 # Prometheus metrics
 # ----------------------------
-instrumentator = Instrumentator(
-    should_group_status_codes=False, should_ignore_untemplated=True
-)
+instrumentator = Instrumentator(should_group_status_codes=False, should_ignore_untemplated=True)
 instrumentator.instrument(app).expose(app)  # /metrics endpoint
 
 
@@ -97,9 +89,7 @@ async def log_requests(request: Request, call_next):
 # ----------------------------
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse(
-        "index.html", {"request": request, "features": FEATURES}
-    )
+    return templates.TemplateResponse("index.html", {"request": request, "features": FEATURES})
 
 
 # ----------------------------
@@ -108,9 +98,7 @@ def home(request: Request):
 @app.post("/predict_form", response_class=HTMLResponse)
 async def predict_form(request: Request):
     form_data = await request.form()
-    input_data = {
-        key: float(value) for key, value in form_data.items() if key in FEATURES
-    }
+    input_data = {key: float(value) for key, value in form_data.items() if key in FEATURES}
 
     df = pd.DataFrame([input_data])
     pred_class = int(model.predict(df)[0])
@@ -159,18 +147,13 @@ def view_logs(request: Request):
                             "status_code": log_entry.get("status_code"),
                             "process_time": (
                                 round(log_entry.get("process_time", 0), 3)
-                                if isinstance(
-                                    log_entry.get("process_time", 0), (int, float)
-                                )
+                                if isinstance(log_entry.get("process_time", 0), (int, float))
                                 else "-"
                             ),
                             "prediction": log_entry.get("prediction", "-"),
                             "confidence": (
                                 round(float(log_entry["confidence"]), 2)
-                                if "confidence" in log_entry
-                                and isinstance(
-                                    log_entry["confidence"], (int, float, str)
-                                )
+                                if "confidence" in log_entry and isinstance(log_entry["confidence"], (int, float, str))
                                 else "-"
                             ),
                         }
@@ -178,6 +161,4 @@ def view_logs(request: Request):
                 except (json.JSONDecodeError, ValueError):
                     continue
 
-    return templates.TemplateResponse(
-        "logs.html", {"request": request, "logs": logs_data}
-    )
+    return templates.TemplateResponse("logs.html", {"request": request, "logs": logs_data})
