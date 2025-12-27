@@ -109,8 +109,11 @@ jobs:
       # 12. Tag and push Docker image (dynamic lowercase)
       # --------------------------
       - name: Tag and push Docker image
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: |
-          DOCKER_REPO="ghcr.io/${{ github.repository_owner && github.repository_owner.toLowerCase() }}/heart-disease-api:latest"
+          REPO_OWNER=$(echo "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          DOCKER_REPO="ghcr.io/$REPO_OWNER/heart-disease-api:latest"
           echo "Docker repo: $DOCKER_REPO"
           docker tag heart-disease-api:latest $DOCKER_REPO
           docker push $DOCKER_REPO
