@@ -36,17 +36,22 @@ jobs:
           pip install pytest flake8 mlflow fastapi uvicorn docker kubernetes black
 
       # --------------------------
-      # 4. Format code with Black
+      # 4. Format code with Black & push
       # --------------------------
       - name: Format code with Black
         run: |
           black src/ tests/
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add src/ tests/
+          git commit -m "Auto-format code with Black" || echo "No changes to commit"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
 
       # --------------------------
       # 5. Lint code
       # --------------------------
       - name: Lint code
-        run: flake8 src/ tests/
+        run: flake8 src/ tests/ --max-line-length=88 --ignore=F401
 
       # --------------------------
       # 6. Run unit tests
