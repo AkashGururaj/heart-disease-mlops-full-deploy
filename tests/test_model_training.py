@@ -55,12 +55,15 @@ def test_pipeline_creation():
 
     pipeline = Pipeline(
         steps=[
-            ("preprocessor", ColumnTransformer(
-                transformers=[
-                    ("num", StandardScaler(), num_features),
-                    ("cat", OneHotEncoder(handle_unknown="ignore"), cat_features),
-                ]
-            )),
+            (
+                "preprocessor",
+                ColumnTransformer(
+                    transformers=[
+                        ("num", StandardScaler(), num_features),
+                        ("cat", OneHotEncoder(handle_unknown="ignore"), cat_features),
+                    ]
+                ),
+            ),
             ("classifier", RandomForestClassifier(n_estimators=200, random_state=42)),
         ]
     )

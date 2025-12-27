@@ -42,4 +42,4 @@ def test_cleaning():
     # -----------------------
     # Assertions
     # -----------------------
-    assert sample_data.isnull().sum().sum() ==_
+    assert sample_data.isnull().sum().sum() == _
