@@ -29,19 +29,17 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ----------------------------
-# Copy application code and outputs
+# Copy application code
 # ----------------------------
 COPY src/ src/
-COPY src/outputs/ outputs/
 
-# Copy templates folder
+# Copy templates folder if exists
 COPY src/templates/ src/templates/
 
-
 # ----------------------------
-# Create logs directory
+# Create outputs and logs directories
 # ----------------------------
-RUN mkdir -p /app/logs
+RUN mkdir -p /app/outputs /app/logs
 
 # ----------------------------
 # Set environment variable
