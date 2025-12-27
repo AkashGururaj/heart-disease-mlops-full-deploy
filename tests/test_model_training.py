@@ -5,6 +5,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 
+
 def test_pipeline_creation():
     num_features = ["age", "trestbps", "chol"]
     cat_features = ["sex", "cp"]

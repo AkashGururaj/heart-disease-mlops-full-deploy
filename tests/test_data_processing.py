@@ -2,6 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 
+
 def test_cleaning():
     sample_data = pd.DataFrame(
         {
