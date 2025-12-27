@@ -31,8 +31,20 @@ timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 # -----------------------
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
 columns = [
-    "age","sex","cp","trestbps","chol","fbs","restecg",
-    "thalach","exang","oldpeak","slope","ca","thal","target"
+    "age",
+    "sex",
+    "cp",
+    "trestbps",
+    "chol",
+    "fbs",
+    "restecg",
+    "thalach",
+    "exang",
+    "oldpeak",
+    "slope",
+    "ca",
+    "thal",
+    "target",
 ]
 df = pd.read_csv(url, header=None, names=columns)
 
@@ -72,9 +84,7 @@ for col in df.columns[:-1]:
 # -----------------------
 X = df.drop("target", axis=1)
 y = df["target"]
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
-)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
 # -----------------------
 # Feature engineering
@@ -133,18 +143,22 @@ width = 0.2
 
 for i, metric in enumerate(metrics):
     values = [results[m][metric] for m in model_names]
-    bars = ax.bar(x + i*width, values, width=width, label=metric)
+    bars = ax.bar(x + i * width, values, width=width, label=metric)
     for bar in bars:
         height = bar.get_height()
-        ax.annotate(f"{height:.2f}",
-                    xy=(bar.get_x() + bar.get_width()/2, height),
-                    xytext=(0,3),
-                    textcoords="offset points",
-                    ha="center", va="bottom", fontsize=9)
+        ax.annotate(
+            f"{height:.2f}",
+            xy=(bar.get_x() + bar.get_width() / 2, height),
+            xytext=(0, 3),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
 
-ax.set_xticks(x + width*1.5)
+ax.set_xticks(x + width * 1.5)
 ax.set_xticklabels(model_names)
-ax.set_ylim(0,1.1)
+ax.set_ylim(0, 1.1)
 ax.set_ylabel("Score")
 ax.set_title("Model Performance Metrics on Test Set")
 ax.legend()
