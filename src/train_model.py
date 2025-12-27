@@ -178,4 +178,4 @@ with open("outputs/requirements.txt", "w") as f:
 # -----------------------
 print(f"Training Complete. Outputs saved with timestamp: {timestamp}")
 print(f"Best Model Saved: {best_model_name}")
-print(f"Performance Chart Saved at: {results_img_path}")
+print(f"performance Chart Saved at: {results_img_path}")
