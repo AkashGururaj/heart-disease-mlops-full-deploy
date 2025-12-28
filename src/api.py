@@ -21,7 +21,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 log_file = os.path.join(OUTPUT_DIR, "api_requests.log")
 logging.basicConfig(filename=log_file, level=logging.INFO, format="%(message)s")
 
-#Load Latest Model
+# Load Latest Model
 model_files = [f for f in os.listdir(OUTPUT_DIR) if f.startswith("final_model_") and f.endswith(".pkl")]
 
 if not model_files:
@@ -32,7 +32,7 @@ model_path = os.path.join(OUTPUT_DIR, latest_model_file)
 with open(model_path, "rb") as f:
     model = pickle.load(f)
 
-#Features
+# Features
 FEATURES = [
     "age",
     "sex",
@@ -52,10 +52,9 @@ FEATURES = [
 
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-#Metric Logging
+# Metric Logging
 instrumentator = Instrumentator(should_group_status_codes=False, should_ignore_untemplated=True)
 instrumentator.instrument(app).expose(app)  # /metrics endpoint
-
 
 
 @app.middleware("http")
@@ -79,7 +78,7 @@ def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "features": FEATURES})
 
 
-#Prediction API
+# Prediction API
 @app.post("/predict_form", response_class=HTMLResponse)
 async def predict_form(request: Request):
     form_data = await request.form()
@@ -112,7 +111,7 @@ async def predict_form(request: Request):
     )
 
 
-#Log Page API
+# Log Page API
 @app.get("/logs", response_class=HTMLResponse)
 def view_logs(request: Request):
     logs_data = []
