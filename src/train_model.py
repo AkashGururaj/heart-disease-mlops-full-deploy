@@ -43,8 +43,20 @@ timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
 
 columns = [
-    "age", "sex", "cp", "trestbps", "chol", "fbs", "restecg",
-    "thalach", "exang", "oldpeak", "slope", "ca", "thal", "target"
+    "age",
+    "sex",
+    "cp",
+    "trestbps",
+    "chol",
+    "fbs",
+    "restecg",
+    "thalach",
+    "exang",
+    "oldpeak",
+    "slope",
+    "ca",
+    "thal",
+    "target",
 ]
 
 df = pd.read_csv(url, header=None, names=columns)
@@ -69,9 +81,7 @@ df["target"] = df["target"].apply(lambda x: 1 if x > 0 else 0)
 # =======================
 # Save cleaned dataset
 # =======================
-cleaned_data_path = os.path.join(
-    OUTPUT_DIR, f"cleaned_heart_disease_{timestamp}.csv"
-)
+cleaned_data_path = os.path.join(OUTPUT_DIR, f"cleaned_heart_disease_{timestamp}.csv")
 df.to_csv(cleaned_data_path, index=False)
 
 
@@ -212,9 +222,7 @@ ax.set_title("Model Performance Metrics")
 ax.legend()
 
 plt.tight_layout()
-results_img_path = os.path.join(
-    OUTPUT_DIR, f"model_performance_{timestamp}.png"
-)
+results_img_path = os.path.join(OUTPUT_DIR, f"model_performance_{timestamp}.png")
 plt.savefig(results_img_path)
 plt.close()
 
@@ -233,14 +241,10 @@ best_pipeline = Pipeline(
 
 best_pipeline.fit(X_train, y_train)
 
-with open(
-    os.path.join(OUTPUT_DIR, f"final_model_{timestamp}.pkl"), "wb"
-) as f:
+with open(os.path.join(OUTPUT_DIR, f"final_model_{timestamp}.pkl"), "wb") as f:
     pickle.dump(best_pipeline, f)
 
-with open(
-    os.path.join(OUTPUT_DIR, f"preprocessing_pipeline_{timestamp}.pkl"), "wb"
-) as f:
+with open(os.path.join(OUTPUT_DIR, f"preprocessing_pipeline_{timestamp}.pkl"), "wb") as f:
     pickle.dump(best_pipeline.named_steps["preprocessor"], f)
 
 
