@@ -1,6 +1,10 @@
+# =======================
+# Imports
+# =======================
 import os
 import pickle
 from datetime import datetime
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,13 +16,20 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
 
 import mlflow
 import mlflow.sklearn
 
 
-# Setup output directory 
+# =======================
+# Setup output directory
+# =======================
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -26,16 +37,22 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
+# =======================
 # Load dataset
+# =======================
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
+
 columns = [
     "age", "sex", "cp", "trestbps", "chol", "fbs", "restecg",
     "thalach", "exang", "oldpeak", "slope", "ca", "thal", "target"
 ]
+
 df = pd.read_csv(url, header=None, names=columns)
 
 
+# =======================
 # Clean dataset
+# =======================
 df.replace("?", np.nan, inplace=True)
 
 for col in ["ca", "thal"]:
@@ -49,43 +66,56 @@ for col in df.columns:
 df["target"] = df["target"].apply(lambda x: 1 if x > 0 else 0)
 
 
-# Save cleaned dataset (CSV)
+# =======================
+# Save cleaned dataset
+# =======================
 cleaned_data_path = os.path.join(
-    OUTPUT_DIR, f"cleaned_heart_disease_data_{timestamp}.csv"
+    OUTPUT_DIR, f"cleaned_heart_disease_{timestamp}.csv"
 )
 df.to_csv(cleaned_data_path, index=False)
 
-print(f"Cleaned dataset saved at: {cleaned_data_path}")
 
-
+# =======================
 # EDA
+# =======================
 plt.figure(figsize=(8, 6))
 sns.countplot(x="target", data=df)
+plt.title("Class Distribution")
 plt.savefig(os.path.join(OUTPUT_DIR, f"class_balance_{timestamp}.png"))
 plt.close()
 
 plt.figure(figsize=(12, 10))
 sns.heatmap(df.corr(), annot=True, fmt=".2f", cmap="coolwarm")
+plt.title("Correlation Heatmap")
 plt.savefig(os.path.join(OUTPUT_DIR, f"corr_heatmap_{timestamp}.png"))
 plt.close()
 
 for col in df.columns[:-1]:
     plt.figure()
     sns.histplot(df[col], kde=True)
+    plt.title(f"Distribution of {col}")
     plt.savefig(os.path.join(OUTPUT_DIR, f"hist_{col}_{timestamp}.png"))
     plt.close()
 
 
+# =======================
 # Train-test split
+# =======================
 X = df.drop("target", axis=1)
 y = df["target"]
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y,
 )
 
 
+# =======================
 # Feature engineering
+# =======================
 num_features = ["age", "trestbps", "chol", "thalach", "oldpeak"]
 cat_features = [col for col in X.columns if col not in num_features]
 
@@ -96,23 +126,35 @@ preprocessor = ColumnTransformer(
     ]
 )
 
-# MLflow experiment tracking
+
+# =======================
+# MLflow setup
+# =======================
 mlflow.set_experiment("Heart_Disease_Prediction")
 
 models = {
-    "RandomForest": RandomForestClassifier(n_estimators=200, max_depth=10, random_state=42),
+    "RandomForest": RandomForestClassifier(
+        n_estimators=200,
+        max_depth=10,
+        random_state=42,
+    ),
     "LogisticRegression": LogisticRegression(max_iter=1000),
 }
 
 results = {}
 
-for name, clf in models.items():
-    pipeline = Pipeline([
-        ("preprocessor", preprocessor),
-        ("classifier", clf)
-    ])
 
+# =======================
+# Train & log models
+# =======================
+for name, clf in models.items():
     with mlflow.start_run(run_name=name):
+        pipeline = Pipeline(
+            steps=[
+                ("preprocessor", preprocessor),
+                ("classifier", clf),
+            ]
+        )
 
         pipeline.fit(X_train, y_train)
 
@@ -131,21 +173,14 @@ for name, clf in models.items():
             "ROC-AUC": roc,
         }
 
-        # Log params & metrics
         mlflow.log_params(clf.get_params())
         mlflow.log_metrics(results[name])
-
-        # Log model
         mlflow.sklearn.log_model(pipeline, artifact_path="model")
 
-        #Log cleaned dataset as MLflow artifact
-        mlflow.log_artifact(
-            cleaned_data_path,
-            artifact_path="data/cleaned"
-        )
 
-
-# Performance comparison plot for models
+# =======================
+# Performance comparison plot
+# =======================
 metrics = ["Accuracy", "Precision", "Recall", "ROC-AUC"]
 model_names = list(results.keys())
 
@@ -155,43 +190,79 @@ width = 0.2
 
 for i, metric in enumerate(metrics):
     values = [results[m][metric] for m in model_names]
-    ax.bar(x + i * width, values, width=width, label=metric)
+    bars = ax.bar(x + i * width, values, width=width, label=metric)
+
+    for bar in bars:
+        height = bar.get_height()
+        ax.annotate(
+            f"{height:.2f}",
+            xy=(bar.get_x() + bar.get_width() / 2, height),
+            xytext=(0, 3),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
 
 ax.set_xticks(x + width * 1.5)
 ax.set_xticklabels(model_names)
 ax.set_ylim(0, 1.1)
 ax.set_ylabel("Score")
-ax.set_title("Model Performance Metrics on Test Set")
+ax.set_title("Model Performance Metrics")
 ax.legend()
 
 plt.tight_layout()
-results_img_path = os.path.join(OUTPUT_DIR, f"model_performance_{timestamp}.png")
+results_img_path = os.path.join(
+    OUTPUT_DIR, f"model_performance_{timestamp}.png"
+)
 plt.savefig(results_img_path)
 plt.close()
 
 
-# Save best model 
+# =======================
+# Save best model
+# =======================
 best_model_name = max(results, key=lambda k: results[k]["Accuracy"])
 
-best_pipeline = Pipeline([
-    ("preprocessor", preprocessor),
-    ("classifier", models[best_model_name])
-])
+best_pipeline = Pipeline(
+    steps=[
+        ("preprocessor", preprocessor),
+        ("classifier", models[best_model_name]),
+    ]
+)
 
 best_pipeline.fit(X_train, y_train)
 
-with open(os.path.join(OUTPUT_DIR, f"final_model_{timestamp}.pkl"), "wb") as f:
+with open(
+    os.path.join(OUTPUT_DIR, f"final_model_{timestamp}.pkl"), "wb"
+) as f:
     pickle.dump(best_pipeline, f)
 
+with open(
+    os.path.join(OUTPUT_DIR, f"preprocessing_pipeline_{timestamp}.pkl"), "wb"
+) as f:
+    pickle.dump(best_pipeline.named_steps["preprocessor"], f)
 
+
+# =======================
 # Save requirements
-requirements = (
-    "numpy\npandas\nscikit-learn\nmatplotlib\nseaborn\nmlflow\npytest\nflake8"
-)
+# =======================
+requirements = """numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+mlflow
+pytest
+flake8
+"""
+
 with open(os.path.join(OUTPUT_DIR, "requirements.txt"), "w") as f:
     f.write(requirements)
 
 
-print("Training complete")
-print(f"Best model: {best_model_name}")
-print(f"Cleaned data versioned in MLflow under: data/cleaned/")
+
+print("Training Complete")
+print(f"Cleaned dataset saved at: {cleaned_data_path}")
+print(f"Best Model: {best_model_name}")
+print(f"Outputs directory: {OUTPUT_DIR}")
