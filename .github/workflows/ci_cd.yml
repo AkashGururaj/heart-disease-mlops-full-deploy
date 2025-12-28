@@ -8,39 +8,39 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write  # needed to push commits from workflow
+  contents: write  
 
 jobs:
   build-test-train-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # --------------------------
+
       # 1. Checkout repository
-      # --------------------------
+  
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # --------------------------
+
       # 2. Set up Python
-      # --------------------------
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
-      # --------------------------
+ 
       # 3. Install dependencies
-      # --------------------------
+    
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest flake8 mlflow fastapi uvicorn docker black
 
-      # --------------------------
+ 
       # 4. Format code with Black & push using PAT
-      # --------------------------
+    
       - name: Format code with Black
         run: |
           black src/ tests/ --line-length 120
@@ -50,36 +50,35 @@ jobs:
           git commit -m "Auto-format code with Black" || echo "No changes to commit"
           git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }} HEAD:main
 
-      # --------------------------
+
       # 5. Lint code
-      # --------------------------
+
       - name: Lint code
         run: flake8 src/ tests/ --max-line-length=120 --ignore=F401,W503
 
-      # --------------------------
+ 
       # 6. Run unit tests
-      # --------------------------
+
       - name: Run unit tests
         run: pytest tests/ --maxfail=1 --disable-warnings -q
 
-      # --------------------------
+
       # 7. Train final model
-      # --------------------------
+  
       - name: Train model with MLflow
         run: python src/train_model.py
 
-      # --------------------------
+
       # 8. Upload workflow artifacts
-      # --------------------------
+
       - name: Upload model artifacts
         uses: actions/upload-artifact@v4
         with:
           name: model-artifacts
           path: outputs/
 
-      # --------------------------
       # 9. Commit & push trained model
-      # --------------------------
+    
       - name: Commit and push trained model
         run: |
           git config --global user.name "GitHub Actions"
@@ -89,15 +88,15 @@ jobs:
           git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }} HEAD:main
         continue-on-error: true
 
-      # --------------------------
+   
       # 10. Build Docker image
-      # --------------------------
+   
       - name: Build Docker image
         run: docker build -t heart-disease-api:latest .
 
-      # --------------------------
+
       # 11. Log in to GitHub Container Registry using PAT
-      # --------------------------
+   
       - name: Log in to GHCR
         uses: docker/login-action@v2
         with:
@@ -105,9 +104,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.PAT_TOKEN }}
 
-      # --------------------------
+
       # 12. Tag and push Docker image
-      # --------------------------
+   
       - name: Tag and push Docker image
         env:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
@@ -118,9 +117,8 @@ jobs:
           docker tag heart-disease-api:latest $DOCKER_REPO
           docker push $DOCKER_REPO
 
-      # --------------------------
+  
       # 13. Deploy to Kubernetes
-      # --------------------------
       - name: Deploy to Kubernetes
         run: |
           kubectl apply -f k8s/deployment.yaml
@@ -128,9 +126,9 @@ jobs:
           kubectl apply -f k8s/ingress.yaml
         continue-on-error: true
 
-      # --------------------------
-      # 14. Verify deployment
-      # --------------------------
+    
+      # 14. Verify deployment skipped as not using due to local deployment
+      
       - name: Verify pods
         run: kubectl get pods || echo "Kubernetes verification skipped"
 
