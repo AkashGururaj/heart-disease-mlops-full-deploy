@@ -1,3 +1,4 @@
+
 # Imports
 import os
 import pickle
@@ -27,6 +28,7 @@ import mlflow.sklearn
 
 
 # Setup output directory
+
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -36,23 +38,12 @@ timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
 # Load dataset
+
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
 
 columns = [
-    "age",
-    "sex",
-    "cp",
-    "trestbps",
-    "chol",
-    "fbs",
-    "restecg",
-    "thalach",
-    "exang",
-    "oldpeak",
-    "slope",
-    "ca",
-    "thal",
-    "target",
+    "age", "sex", "cp", "trestbps", "chol", "fbs", "restecg",
+    "thalach", "exang", "oldpeak", "slope", "ca", "thal", "target"
 ]
 
 df = pd.read_csv(url, header=None, names=columns)
@@ -60,6 +51,7 @@ df = pd.read_csv(url, header=None, names=columns)
 
 
 # Clean dataset
+
 df.replace("?", np.nan, inplace=True)
 
 for col in ["ca", "thal"]:
@@ -75,19 +67,16 @@ df["target"] = df["target"].apply(lambda x: 1 if x > 0 else 0)
 
 
 # Save cleaned dataset
-<<<<<<< HEAD
+
 cleaned_data_path = os.path.join(
     OUTPUT_DIR, f"cleaned_heart_disease_{timestamp}.csv"
 )
-=======
-# =======================
-cleaned_data_path = os.path.join(OUTPUT_DIR, f"cleaned_heart_disease_{timestamp}.csv")
->>>>>>> 113059fdc337edc424ba9f4b8573f40239009afa
 df.to_csv(cleaned_data_path, index=False)
 
 
 
 # EDA
+
 plt.figure(figsize=(8, 6))
 sns.countplot(x="target", data=df)
 plt.title("Class Distribution")
@@ -109,7 +98,8 @@ for col in df.columns[:-1]:
 
 
 
-# Train-test split 80/20
+# Train-test split
+
 X = df.drop("target", axis=1)
 y = df["target"]
 
@@ -124,6 +114,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 
 # Feature engineering
+
 num_features = ["age", "trestbps", "chol", "thalach", "oldpeak"]
 cat_features = [col for col in X.columns if col not in num_features]
 
@@ -136,7 +127,7 @@ preprocessor = ColumnTransformer(
 
 
 
-# MLflow setup for expirement tracking
+# MLflow setup
 
 mlflow.set_experiment("Heart_Disease_Prediction")
 
@@ -187,7 +178,7 @@ for name, clf in models.items():
 
 
 
-# Performance comparison plot for models
+# Performance comparison plot
 
 metrics = ["Accuracy", "Precision", "Recall", "ROC-AUC"]
 model_names = list(results.keys())
@@ -220,7 +211,9 @@ ax.set_title("Model Performance Metrics")
 ax.legend()
 
 plt.tight_layout()
-results_img_path = os.path.join(OUTPUT_DIR, f"model_performance_{timestamp}.png")
+results_img_path = os.path.join(
+    OUTPUT_DIR, f"model_performance_{timestamp}.png"
+)
 plt.savefig(results_img_path)
 plt.close()
 
@@ -239,10 +232,14 @@ best_pipeline = Pipeline(
 
 best_pipeline.fit(X_train, y_train)
 
-with open(os.path.join(OUTPUT_DIR, f"final_model_{timestamp}.pkl"), "wb") as f:
+with open(
+    os.path.join(OUTPUT_DIR, f"final_model_{timestamp}.pkl"), "wb"
+) as f:
     pickle.dump(best_pipeline, f)
 
-with open(os.path.join(OUTPUT_DIR, f"preprocessing_pipeline_{timestamp}.pkl"), "wb") as f:
+with open(
+    os.path.join(OUTPUT_DIR, f"preprocessing_pipeline_{timestamp}.pkl"), "wb"
+) as f:
     pickle.dump(best_pipeline.named_steps["preprocessor"], f)
 
 
