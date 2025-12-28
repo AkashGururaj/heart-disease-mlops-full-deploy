@@ -13,7 +13,7 @@ from collections import deque
 
 app = FastAPI(title="Heart Disease Prediction API")
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # src/
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))  
 OUTPUT_DIR = os.path.join(BASE_DIR, "..", "outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -54,7 +54,7 @@ templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 # Metric Logging
 instrumentator = Instrumentator(should_group_status_codes=False, should_ignore_untemplated=True)
-instrumentator.instrument(app).expose(app)  # /metrics endpoint
+instrumentator.instrument(app).expose(app)  
 
 
 @app.middleware("http")
