@@ -18,7 +18,7 @@ import mlflow
 import mlflow.sklearn
 
 
-# Setup output directory 
+# Setup output directory
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -29,8 +29,20 @@ timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 # Load dataset
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
 columns = [
-    "age", "sex", "cp", "trestbps", "chol", "fbs", "restecg",
-    "thalach", "exang", "oldpeak", "slope", "ca", "thal", "target"
+    "age",
+    "sex",
+    "cp",
+    "trestbps",
+    "chol",
+    "fbs",
+    "restecg",
+    "thalach",
+    "exang",
+    "oldpeak",
+    "slope",
+    "ca",
+    "thal",
+    "target",
 ]
 df = pd.read_csv(url, header=None, names=columns)
 
@@ -50,9 +62,7 @@ df["target"] = df["target"].apply(lambda x: 1 if x > 0 else 0)
 
 
 # Save cleaned dataset (CSV)
-cleaned_data_path = os.path.join(
-    OUTPUT_DIR, f"cleaned_heart_disease_data_{timestamp}.csv"
-)
+cleaned_data_path = os.path.join(OUTPUT_DIR, f"cleaned_heart_disease_data_{timestamp}.csv")
 df.to_csv(cleaned_data_path, index=False)
 
 print(f"Cleaned dataset saved at: {cleaned_data_path}")
@@ -80,9 +90,7 @@ for col in df.columns[:-1]:
 X = df.drop("target", axis=1)
 y = df["target"]
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
-)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
 
 # Feature engineering
@@ -107,10 +115,7 @@ models = {
 results = {}
 
 for name, clf in models.items():
-    pipeline = Pipeline([
-        ("preprocessor", preprocessor),
-        ("classifier", clf)
-    ])
+    pipeline = Pipeline([("preprocessor", preprocessor), ("classifier", clf)])
 
     with mlflow.start_run(run_name=name):
 
@@ -138,11 +143,8 @@ for name, clf in models.items():
         # Log model
         mlflow.sklearn.log_model(pipeline, artifact_path="model")
 
-        #Log cleaned dataset as MLflow artifact
-        mlflow.log_artifact(
-            cleaned_data_path,
-            artifact_path="data/cleaned"
-        )
+        # Log cleaned dataset as MLflow artifact
+        mlflow.log_artifact(cleaned_data_path, artifact_path="data/cleaned")
 
 
 # Performance comparison plot for models
@@ -170,13 +172,10 @@ plt.savefig(results_img_path)
 plt.close()
 
 
-# Save best model 
+# Save best model
 best_model_name = max(results, key=lambda k: results[k]["Accuracy"])
 
-best_pipeline = Pipeline([
-    ("preprocessor", preprocessor),
-    ("classifier", models[best_model_name])
-])
+best_pipeline = Pipeline([("preprocessor", preprocessor), ("classifier", models[best_model_name])])
 
 best_pipeline.fit(X_train, y_train)
 
@@ -185,9 +184,7 @@ with open(os.path.join(OUTPUT_DIR, f"final_model_{timestamp}.pkl"), "wb") as f:
 
 
 # Save requirements
-requirements = (
-    "numpy\npandas\nscikit-learn\nmatplotlib\nseaborn\nmlflow\npytest\nflake8"
-)
+requirements = "numpy\npandas\nscikit-learn\nmatplotlib\nseaborn\nmlflow\npytest\nflake8"
 with open(os.path.join(OUTPUT_DIR, "requirements.txt"), "w") as f:
     f.write(requirements)
 
